@@ -1,5 +1,7 @@
 package ipv4calculator;
 
+import view.MainFrame;
+
 /**
  *
  * @author Evandro Henrique Weyand
@@ -7,7 +9,7 @@ package ipv4calculator;
 public class IPV4Calculator {
 
     public static void main(String[] args) {
-        System.out.println("Oi");
+        new MainFrame().setVisible(true);
     }
     
 }
