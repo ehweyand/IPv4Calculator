@@ -5,68 +5,129 @@ import java.util.HashMap;
 /**
  *
  * @author Evandro Henrique Weyand
+ *
+ * Instructions to use: Instantiate a object of this class, setting the IP. The
+ * class will convert the ip and his elements with various available methods.
  */
 public class IPCalculator {
 
-    private HashMap<String, String[]> masks;
-
+    // Input data
     private String ip;
-    private String maskBits;
-    private String subnetMask;
-    private String wildCardMask;
+    private int maskBits;
 
-    public IPCalculator(String ip, String maskBits) {
+    // Control data
+    private int ipBin;
+    private int maskBin;
+    private int netBin;
+    private int bcBin;
+    private String[] printMaskBin;
+    private String[] printNetBin;
+    private String[] printBcBin;
+
+    public IPCalculator(String ip, int maskBits) {
         this.ip = ip;
         this.maskBits = maskBits;
-        // Remover barra se foi inserida
-        this.maskBits = this.maskBits.replace("/", "");
-        this.masks = new HashMap();
-        
-        // Adicionando as máscaras
-        masks.put("32", new String[]{"255.255.255.255", "0.0.0.0"});
-        masks.put("31", new String[]{"255.255.255.254", "0.0.0.1"});
-        masks.put("30", new String[]{"255.255.255.252", "0.0.0.3"});
-        masks.put("29", new String[]{"255.255.255.248", "0.0.0.7"});
-        masks.put("28", new String[]{"255.255.255.240", "0.0.0.15"});
-        masks.put("27", new String[]{"255.255.255.224", "0.0.0.31"});
-        masks.put("26", new String[]{"255.255.255.192", "0.0.0.63"});
-        masks.put("25", new String[]{"255.255.255.128", "0.0.0.127"});
-        masks.put("24", new String[]{"255.255.255.0", "0.0.0.255"});
-        masks.put("23", new String[]{"255.255.254.0", "0.0.1.255"});
-        masks.put("22", new String[]{"255.255.252.0", "0.0.3.255"});
-        masks.put("21", new String[]{"255.255.248.0", "0.0.7.255"});
-        masks.put("20", new String[]{"255.255.240.0", "0.0.15.255"});
-        masks.put("19", new String[]{"255.255.224.0", "0.0.31.255"});
-        masks.put("18", new String[]{"255.255.192.0", "0.0.63.255"});
-        masks.put("17", new String[]{"255.255.128.0", "0.0.127.255"});
-        masks.put("16", new String[]{"255.255.0.0", "0.0.255.255"});
-        masks.put("15", new String[]{"255.254.0.0", "0.1.255.255"});
-        masks.put("14", new String[]{"255.252.0.0", "0.3.255.255"});
-        masks.put("13", new String[]{"255.248.0.0", "0.7.255.255"});
-        masks.put("12", new String[]{"255.240.0.0", "0.15.255.255"});
-        masks.put("11", new String[]{"255.224.0.0", "0.31.255.255"});
-        masks.put("10", new String[]{"255.192.0.0", "0.63.255.255"});
-        masks.put("9", new String[]{"255.128.0.0", "0.127.255.255"});
-        masks.put("8", new String[]{"255.0.0.0", "0.255.255.255"});
-        masks.put("7", new String[]{"254.0.0.0", "1.255.255.255"});
-        masks.put("6", new String[]{"252.0.0.0", "3.255.255.255"});
-        masks.put("5", new String[]{"248.0.0.0", "7.255.255.255"});
-        masks.put("4", new String[]{"240.0.0.0", "15.255.255.255"});
-        masks.put("3", new String[]{"224.0.0.0", "31.255.255.255"});
-        masks.put("2", new String[]{"192.0.0.0", "63.255.255.255"});
-        masks.put("1", new String[]{"128.0.0.0", "127.255.255.255"});
-        
-        // Armazenando a wildcard correta
-        this.wildCardMask = masks.get(this.maskBits)[1];
+        init();
+    }
 
+    /*
+    * Start the ADT (Abstract Data type).
+     */
+    private void init() {
+        String[] parts = this.ip.trim().split("\\.");
+
+        String bq1 = Integer.toBinaryString(Integer.parseInt(parts[0]));
+        String bq2 = Integer.toBinaryString(Integer.parseInt(parts[1]));
+        String bq3 = Integer.toBinaryString(Integer.parseInt(parts[2]));
+        String bq4 = Integer.toBinaryString(Integer.parseInt(parts[3]));
+
+        // Transforma em strings de 8 digitos
+        String ipByte1 = String.format("%08d", Integer.parseInt(bq1));
+        String ipByte2 = String.format("%08d", Integer.parseInt(bq2));
+        String ipByte3 = String.format("%08d", Integer.parseInt(bq3));
+        String ipByte4 = String.format("%08d", Integer.parseInt(bq4));
+
+        this.ipBin = Integer.parseInt(ipByte1 + ipByte2 + ipByte3, 2);
+        // Contornando o limite de 31 bit unsigned int do java
+        this.ipBin = (ipBin << 8) + Integer.parseInt(ipByte4, 2);
+
+        this.maskBin = ~0 << (32 - this.maskBits);
+        this.netBin = this.ipBin & this.maskBin;
+        this.bcBin = this.ipBin | ~this.maskBin;
+    }
+
+    /*
+    * DECIMAL
+     */
+    public String getBroadcastAddress() {
+        return String.valueOf(Integer.parseInt(printBcBin[0], 2)) + "."
+                + String.valueOf(Integer.parseInt(printBcBin[1], 2)) + "."
+                + String.valueOf(Integer.parseInt(printBcBin[2], 2)) + "."
+                + String.valueOf(Integer.parseInt(printBcBin[3], 2));
+    }
+
+    public String getNetworkIDAddress() {
+        return String.valueOf(Integer.parseInt(printNetBin[0], 2)) + "."
+                + String.valueOf(Integer.parseInt(printNetBin[1], 2)) + "."
+                + String.valueOf(Integer.parseInt(printNetBin[2], 2)) + "."
+                + String.valueOf(Integer.parseInt(printNetBin[3], 2));
     }
 
     public String getSubnetMask() {
-        return masks.get(this.maskBits)[0];
+        return String.valueOf(Integer.parseInt(printMaskBin[0], 2)) + "."
+                + String.valueOf(Integer.parseInt(printMaskBin[1], 2)) + "."
+                + String.valueOf(Integer.parseInt(printMaskBin[2], 2)) + "."
+                + String.valueOf(Integer.parseInt(printMaskBin[3], 2));
     }
 
-    public String getWildCardMask() {
-        return this.wildCardMask;
+    public String getIPAddress() {
+        return this.ip;
+    }
+
+    /*
+    * BINARY
+     */
+    public String getBroadcastAddressBinary() {
+        String strBcBin = Integer.toBinaryString(this.bcBin);
+        strBcBin = String.format("%32s", strBcBin).replace(" ", "0");
+        printBcBin = strBcBin.split("(?<=\\G........)");
+
+        return printBcBin[0] + "." + printBcBin[1] + "." + printBcBin[2] + "." + printBcBin[3];
+    }
+
+    public String getNetworkIDAddressBinary() {
+        String strNetBin = Integer.toBinaryString(netBin);
+        strNetBin = String.format("%32s", strNetBin).replace(" ", "0");
+        printNetBin = strNetBin.split("(?<=\\G........)");
+
+        return printNetBin[0] + "." + printNetBin[1] + "." + printNetBin[2] + "." + printNetBin[3];
+    }
+
+    public String getSubnetMaskBinary() {
+        String strMaskBin = Integer.toBinaryString(maskBin);
+        strMaskBin = String.format("%32s", strMaskBin).replace(" ", "0");
+        this.printMaskBin = strMaskBin.split("(?<=\\G........)");
+
+        return printMaskBin[0] + "." + printMaskBin[1] + "." + printMaskBin[2] + "." + printMaskBin[3];
+    }
+
+    public String getIPAddressBinary() {
+        String strIpBin = Integer.toBinaryString(this.ipBin);
+        strIpBin = String.format("%32s", strIpBin).replace(" ", "0");
+        String[] printIpBin = strIpBin.split("(?<=\\G........)");
+
+        return printIpBin[0] + "." + printIpBin[1] + "." + printIpBin[2] + "." + printIpBin[3];
+    }
+
+    /*
+    * OTHERS
+     */
+    public int getNumberOfHostsAvailable() {
+        return Integer.parseInt(String.valueOf(~maskBin - 1));
+    }
+
+    public int getNumberOfNetworksAvailable() {
+        return Integer.parseInt(String.valueOf(~(~0 << this.maskBits) + 1));
     }
 
 }
