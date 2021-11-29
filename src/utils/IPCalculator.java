@@ -120,6 +120,18 @@ public class IPCalculator {
     /*
     * OTHERS
      */
+    public String getWildcardMask() {
+        String mask = this.getSubnetMask();
+        String[] wildcard = new String[4];
+        String[] parts = mask.split("\\.");
+        for (int i = 0; i < 4; i++) {
+            int result = 255 - Integer.valueOf(parts[i]);
+            wildcard[i] = String.valueOf(result);
+        }
+
+        return wildcard[0] + "." + wildcard[1] + "." + wildcard[2] + "." + wildcard[3];
+    }
+
     public int getNumberOfHostsAvailable() {
         return Integer.parseInt(String.valueOf(~maskBin - 1));
     }
